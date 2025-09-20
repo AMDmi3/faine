@@ -1,0 +1,38 @@
+name: CI
+on: [ push, pull_request ]
+jobs:
+  test:
+    strategy:
+      matrix:
+        include:
+          - { name: "Rust 1.88",   rust: "1.88",  os: ubuntu-latest, cargo_args: "" }
+          - { name: "Rust stable", rust: stable,  os: ubuntu-latest, cargo_args: "" }
+          - { name: "Rust nightly", rust: nightly, os: ubuntu-latest, cargo_args: "" }
+          - { name: "Rust nightly, windows", rust: nightly, os: windows-latest, cargo_args: "" }
+          - { name: "Rust nightly, macos", rust: nightly, os: macos-latest, cargo_args: "" }
+          - { name: "Rust nightly, release", rust: nightly, os: ubuntu-latest, cargo_args: "--release" }
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.name }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: rustfmt,clippy
+      - name: Build
+        run: cargo build ${{ matrix.cargo_args }}
+        env:
+          RUSTFLAGS: -Dwarnings
+      - name: Test
+        run: cargo test ${{ matrix.cargo_args }}
+      - name: Format check
+        run: cargo fmt --check
+      - name: Clippy check
+        run: cargo clippy
+      - name: README.md consistency check
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: |
+          cargo install cargo-readme
+          cargo readme > README.md.tmp
+          cmp -s README.md README.md.tmp || { echo "README.md is out of sync with documentation"; exit 1; }

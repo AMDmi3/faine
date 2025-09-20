@@ -1,0 +1,17 @@
+[package]
+name = "faine"
+description = "Failpoints implementation with automatic path exploration"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+authors = ["Dmitry Marakasov <amdmi3@amdmi3.ru>"]
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/AMDmi3/faine"
+repository = "https://github.com/AMDmi3/faine"
+documentation = "https://docs.rs/faine"
+keywords = ["failpoint", "failpoints", "fault", "injection", "testing"]
+
+[dev-dependencies]
+anyhow = "1.0.100"
+tempfile = "3.22.0"
