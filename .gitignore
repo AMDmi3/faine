@@ -1,1 +1,3 @@
 /target
+/tests/*-test-project/Cargo.lock
+/tests/*-test-project/target
