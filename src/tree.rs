@@ -25,23 +25,23 @@ impl ForwardEdges {
 pub struct BackwardEdge {
     node_id: NodeId,
     branch: Branch,
-    #[allow(unused)]
-    label: Label,
 }
 
-#[derive(Default)]
 pub struct Node {
     parent: Option<BackwardEdge>,
     nexts: BranchVec<ForwardEdges>,
     is_final: bool,
+    #[allow(unused)]
+    label: Label,
 }
 
 impl Node {
-    pub fn new(parent_edge: Option<BackwardEdge>) -> Self {
+    pub fn new(label: Label, parent_edge: Option<BackwardEdge>) -> Self {
         Self {
             parent: parent_edge,
             nexts: Default::default(),
             is_final: false,
+            label: label,
         }
     }
 
@@ -96,7 +96,7 @@ impl Tree {
                 self.non_determinism_witnessed = true;
             }
             parent_nexts.nodes.insert(label, new_node_id);
-            self.nodes.push(Node::new(self.current_edge));
+            self.nodes.push(Node::new(label, self.current_edge));
             new_node_id
         }
     }
@@ -145,7 +145,6 @@ impl Tree {
                 self.current_edge = Some(BackwardEdge {
                     node_id: current_node_id,
                     branch,
-                    label,
                 });
                 return branch;
             }
