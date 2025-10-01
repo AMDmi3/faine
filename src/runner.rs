@@ -4,6 +4,7 @@
 use crate::__private::{FAILPOINTS, State};
 use crate::common::{Branch, Label};
 use crate::error::Error;
+use crate::introspection::{Report, Trace};
 use crate::options::Options;
 use crate::tree::{ExecutionStatus, Tree};
 
@@ -71,6 +72,9 @@ impl Runner {
             }));
         });
 
+        #[allow(unused)] // false positive?
+        let mut is_exhaustive = false;
+
         loop {
             FAILPOINTS.with_borrow_mut(|state| {
                 state
@@ -95,15 +99,21 @@ impl Runner {
             match status {
                 ExecutionStatus::Continue => {}
                 ExecutionStatus::Stop => {
+                    is_exhaustive = true;
                     break;
                 }
             }
         }
 
+        let mut report = None;
         FAILPOINTS.with_borrow_mut(|state| {
-            let _state = state.take().expect("failpoints state must be initialized");
+            let state = state.take().expect("failpoints state must be initialized");
+            report = Some(Report {
+                traces: state.tree.generate_all_traces(),
+                is_exhaustive,
+            })
         });
 
-        Ok(())
+        Ok(report.expect("report must be filled"))
     }
 }
