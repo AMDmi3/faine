@@ -5,7 +5,7 @@ use faine::{Branch, Runner, enable_failpoints, inject_return};
 
 #[test]
 fn test_runner_with_no_failpoints() {
-    Runner::default().run(|| {}).unwrap();
+    Runner::default().run(|_| {}).unwrap();
 }
 
 #[test]
@@ -22,13 +22,13 @@ fn test_failpoints_outside_of_runner() {
 fn test_panic() {
     // runner should catch this panic (or should it, how do we handle asserts?)
     Runner::default()
-        .run(|| {
+        .run(|_| {
             panic!("this panic should be caught");
         })
         .unwrap();
     // repeatable run should pass fine, e.g. there should be no
     // leftover state from the panicked run
-    Runner::default().run(|| {}).unwrap();
+    Runner::default().run(|_| {}).unwrap();
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn test_simple() {
 
     let mut results = vec![];
     Runner::default()
-        .run(|| {
+        .run(|_| {
             results.push(foo());
         })
         .unwrap();
@@ -64,7 +64,7 @@ fn test_enable_disable() {
 
     let mut results = vec![];
     Runner::default()
-        .run(|| {
+        .run(|_| {
             results.push(foo());
         })
         .unwrap();
@@ -82,7 +82,7 @@ fn test_branch_preference_default() {
 
     let mut results = vec![];
     Runner::default()
-        .run(|| {
+        .run(|_| {
             results.push(foo());
         })
         .unwrap();
@@ -100,7 +100,7 @@ fn test_branch_preference_custom() {
     let mut results = vec![];
     Runner::default()
         .with_branch_preference(Branch::Skip)
-        .run(|| {
+        .run(|_| {
             results.push(foo());
         })
         .unwrap();

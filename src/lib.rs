@@ -94,7 +94,7 @@
 //! #[test]
 //! # fn dummy() {}
 //! fn test_replace_file_is_atomic() {
-//!     faine::Runner::default().run(|| {
+//!     faine::Runner::default().run(|_| {
 //!         // prepare filesystem state for testing
 //!         let tempdir = tempfile::tempdir().unwrap();
 //!         let path = tempdir.path().join("myfile");
@@ -149,7 +149,7 @@
 //! #[test]
 //! # fn dummy() {}
 //! fn test_replace_file_is_atomic() {
-//!     Runner::default().run(|| {
+//!     Runner::default().run(|_| {
 //!         let tempdir = tempfile::tempdir().unwrap();
 //!         let path = tempdir.path().join("myfile");
 //!         File::create(&path).unwrap().write_all(b"old").unwrap();
@@ -228,7 +228,7 @@
 //! #[test]
 //! # fn dummy() {}
 //! fn test_foobar() {
-//!     Runner::default().run(|| {
+//!     Runner::default().run(|_| {
 //!         tested_code();
 //!     }).unwrap();
 //! }

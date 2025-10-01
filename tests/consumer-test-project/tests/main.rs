@@ -5,7 +5,7 @@ use faine::Runner;
 fn test_integration() {
     let mut res = true;
     Runner::default()
-        .run(|| {
+        .run(|_| {
             res &= tested_function();
         })
         .unwrap();

@@ -15,7 +15,7 @@ mod tests {
     fn test_unit() {
         let mut res = true;
         Runner::default()
-            .run(|| {
+            .run(|_| {
                 res &= tested_function();
             })
             .unwrap();

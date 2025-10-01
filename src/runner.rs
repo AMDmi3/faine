@@ -27,7 +27,7 @@ use crate::tree::{ExecutionStatus, Tree};
 /// fn test_foobar() {
 ///     Runner::default()
 ///         .with_branch_preference(Branch::Activate)
-///         .run(|| {
+///         .run(|_| {
 ///             // <optional setup code>
 ///             foobar();
 ///             // <asserts>
@@ -39,6 +39,23 @@ use crate::tree::{ExecutionStatus, Tree};
 #[derive(Default)]
 pub struct Runner {
     options: Options,
+}
+
+pub struct TraceHandle {}
+
+impl TraceHandle {
+    pub fn trace(&self) -> Trace {
+        let mut trace = Trace { path: vec![] };
+
+        FAILPOINTS.with_borrow(|state| {
+            trace = state
+                .as_ref()
+                .expect("failpoints state must be initialized")
+                .tree
+                .generate_current_trace();
+        });
+        trace
+    }
 }
 
 impl Runner {
@@ -63,7 +80,7 @@ impl Runner {
     /// will change in the future), but you can run asserts from the code.
     ///
     /// You can treat a code you pass to it as a regular test.
-    pub fn run(self, mut func: impl FnMut()) -> Result<(), Error> {
+    pub fn run(self, mut func: impl FnMut(&TraceHandle)) -> Result<Report, Error> {
         FAILPOINTS.with_borrow_mut(|state| {
             assert!(state.is_none(), "failpoints state double initialization");
             *state = Some(Box::new(State {
@@ -84,8 +101,10 @@ impl Runner {
                     .start()
             });
 
+            let handle = TraceHandle {};
+
             // TODO: catch panics (but not asserts?)
-            func();
+            func(&handle);
 
             let mut status = ExecutionStatus::Continue;
             FAILPOINTS.with_borrow_mut(|state| {
