@@ -19,16 +19,42 @@ pub struct Trace {
 impl fmt::Debug for Trace {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (n, step) in self.path.iter().enumerate() {
-            write!(f, "{}", if n == 0 { "" } else { "→" })?;
-            write!(
-                f,
-                "{}{}",
-                match step.branch {
-                    Branch::Skip => "",
-                    Branch::Activate => "!",
-                },
-                step.name,
-            )?;
+            #[cfg(feature = "fancy-traces")]
+            {
+                if n > 0 {
+                    write!(f, "→")?;
+                }
+
+                use colored::Colorize;
+                write!(
+                    f,
+                    "({}{})",
+                    match step.branch {
+                        Branch::Skip => "",
+                        Branch::Activate => "💥",
+                    },
+                    match step.branch {
+                        Branch::Skip => step.name.green(),
+                        Branch::Activate => step.name.red(),
+                    }
+                )?;
+            }
+            #[cfg(not(feature = "fancy-traces"))]
+            {
+                if n > 0 {
+                    write!(f, "->")?;
+                }
+
+                write!(
+                    f,
+                    "({}{})",
+                    match step.branch {
+                        Branch::Skip => "",
+                        Branch::Activate => "!",
+                    },
+                    step.name,
+                )?;
+            }
         }
         Ok(())
     }
