@@ -5,14 +5,25 @@ use std::fmt;
 
 use crate::common::Branch;
 
+/// Record of a single failpoint passage
 #[derive(Eq, PartialEq, Hash, Debug)]
 pub struct Step {
+    /// Failpoint name
     pub name: &'static str,
+
+    /// Branch taken at the failpoint, e.g. whether the failpoint
+    /// was activated or skipped
     pub branch: Branch,
 }
 
+/// Execution trace
+///
+/// A record of completed execution of a tested code fragment,
+/// consisting of a sequence of execution steps where the execution
+/// has passed through a failpoint
 #[derive(Eq, PartialEq, Hash)]
 pub struct Trace {
+    /// Sequence of execution steps in the order of execution
     pub path: Vec<Step>,
 }
 
@@ -61,6 +72,12 @@ impl fmt::Debug for Trace {
 }
 
 impl Trace {
+    /// Get branch taken in a named failpoint
+    ///
+    /// Note: execution may pass through a single failpoint multiple times in
+    /// case of loops, this returns a first status.
+    ///
+    /// Returns `None` if a named failpoint was not visited.
     pub fn failpoint_status(&self, failpoint_name: &str) -> Option<Branch> {
         for step in &self.path {
             if step.name == failpoint_name {
@@ -71,9 +88,16 @@ impl Trace {
     }
 }
 
+/// Execution report
+///
+/// Contains cumulative data on series of tested code runs with
+/// different failpoint paths.
 #[derive(Debug)]
 pub struct Report {
+    /// Execution traces
     pub traces: Vec<Trace>,
+
+    /// Whether all known execution paths were visited
     pub is_exhaustive: bool,
 }
 
