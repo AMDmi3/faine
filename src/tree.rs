@@ -41,7 +41,7 @@ impl Node {
             parent: parent_edge,
             nexts: Default::default(),
             is_final: false,
-            label: label,
+            label,
         }
     }
 
