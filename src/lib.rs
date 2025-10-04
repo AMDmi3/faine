@@ -257,7 +257,7 @@ mod tree;
 #[doc(hidden)]
 pub mod __private;
 
-pub use common::{Branch, Label};
+pub use common::Branch;
 pub use error::Error;
 pub use introspection::{Report, Step, Trace};
 pub use runner::Runner;

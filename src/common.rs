@@ -14,7 +14,6 @@ pub enum Branch {
 
 /// Label used when describing code execution path
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
-#[doc(hidden)] // not part of public API until introspection API is introduced
 pub enum Label {
     /// Code execution passes through a named failpont
     Failpoint(&'static str),
