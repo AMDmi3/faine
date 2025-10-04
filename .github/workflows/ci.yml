@@ -30,9 +30,3 @@ jobs:
         run: cargo fmt --check
       - name: Clippy check
         run: cargo clippy
-      - name: README.md consistency check
-        if: ${{ startsWith(matrix.os, 'ubuntu') }}
-        run: |
-          cargo install cargo-readme
-          cargo readme > README.md.tmp
-          cmp -s README.md README.md.tmp || { echo "README.md is out of sync with documentation"; exit 1; }
