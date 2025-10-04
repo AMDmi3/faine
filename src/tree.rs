@@ -92,7 +92,7 @@ impl Tree {
         if let Some(current_node_id) = parent_nexts.nodes.get(&label) {
             *current_node_id
         } else {
-            if parent_nexts.nodes.len() >= 1 {
+            if !parent_nexts.nodes.is_empty() {
                 self.non_determinism_witnessed = true;
             }
             parent_nexts.nodes.insert(label, new_node_id);
