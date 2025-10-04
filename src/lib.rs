@@ -211,20 +211,25 @@
 //! ## Introspection
 //!
 //! You may inspect which failpoints the code execution has passed through,
-//! and which failpoints were activated. It is possible both from the executed
+//! and which of these were activated. It is possible from both the executed
 //! code (to examine current execution trace) and after [`Runner::run`] completion
 //! (to examine traces for all performed executions with different failpoint paths).
 //!
 //! ```
-//! # use faine::Runner;
-//! # fn tested_code() {}
+//! # use faine::{Runner, Branch};
+//! # fn tested_code() -> bool { true }
 //! #[test]
 //! # fn dummy() {}
 //! fn test_foobar() {
 //!     let report = Runner::default().run(|handle| {
-//!         tested_code();
+//!         let res = tested_code();
 //!         eprintln!("current trace: {:?}", handle.trace());
+//!         // assert logic may take failpoint status in the current run into account
+//!         if handle.trace().failpoint_status_first("commit transaction") == Some(Branch::Skip) {
+//!             assert!(res);
+//!         }
 //!     }).unwrap();
+//!     // prints the same set of traces
 //!     eprintln!("all traces: {:#?}", report.traces);
 //! }
 //! ```

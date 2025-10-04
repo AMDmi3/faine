@@ -72,14 +72,33 @@ impl fmt::Debug for Trace {
 }
 
 impl Trace {
-    /// Get branch taken in a named failpoint
+    /// Get information on first visit of a named failpoint
     ///
-    /// Note: execution may pass through a single failpoint multiple times in
-    /// case of loops, this returns a first status.
+    /// A single failpoint may be visited multiple times, for instance in loops
+    /// or repeated subroutine calls. This method returns information on a first visit.
     ///
-    /// Returns `None` if a named failpoint was not visited.
-    pub fn failpoint_status(&self, failpoint_name: &str) -> Option<Branch> {
+    /// Returns `None` if a named failpoint was never visited.
+    ///
+    /// See also [`failpoint_status_last`](Self::failpoint_status_last)
+    pub fn failpoint_status_first(&self, failpoint_name: &str) -> Option<Branch> {
         for step in &self.path {
+            if step.name == failpoint_name {
+                return Some(step.branch);
+            }
+        }
+        None
+    }
+
+    /// Get information on last visit of a named failpoint
+    ///
+    /// A single failpoint may be visited multiple times, for instance in loops
+    /// or repeated subroutine calls. This method returns information on a last visit.
+    ///
+    /// Returns `None` if a named failpoint was never visited.
+    ///
+    /// See also [`failpoint_status_first`](Self::failpoint_status_first)
+    pub fn failpoint_status_last(&self, failpoint_name: &str) -> Option<Branch> {
+        for step in self.path.iter().rev() {
             if step.name == failpoint_name {
                 return Some(step.branch);
             }
