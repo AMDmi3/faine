@@ -91,7 +91,7 @@
 //!
 //! ## Specifying failpoints which inject early return
 //!
-//! The complete macro signature allows to specify failpoint name and retured value:
+//! The complete macro signature allows to specify failpoint name and returned value:
 //!
 //! ```
 //! # use std::io;
@@ -101,7 +101,7 @@
 //! ```
 //!
 //! You can omit failpoint name (in which case it's generated from source file
-//! path, line and position), and, as testing I/O related code is quite commin
+//! path, line and position), and, as testing I/O related code is quite common
 //! case, there are shortcuts which return `Err(io::Error::other()))` right away:
 //!
 //! ```
@@ -213,7 +213,7 @@
 //! You may inspect which failpoints the code execution has passed through,
 //! and which failpoints were activated. It is possible both from the executed
 //! code (to examine current execution trace) and after [`Runner::run`] completion
-//! (to examine traces for all performed executions with different failpont paths).
+//! (to examine traces for all performed executions with different failpoint paths).
 //!
 //! ```
 //! # use faine::Runner;
@@ -244,7 +244,7 @@
 //!
 //! Run `cargo test --example atomic_replace_file -- --no-capture` to reproduce.
 //!
-//! # Other implementaions of the same concept
+//! # Other implementations of the same concept
 //!
 //! Neither supports path exploration as far as I know.
 //!
