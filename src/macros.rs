@@ -11,7 +11,7 @@ macro_rules! inject_return {
             if let Some(state) = state
                 && state.enabled
             {
-                branch = state.tree.visit($crate::Label::Failpoint(NAME));
+                branch = state.tree.visit(NAME);
             }
         });
         match branch {
@@ -27,7 +27,7 @@ macro_rules! inject_return {
             if let Some(state) = state
                 && state.enabled
             {
-                branch = state.tree.visit($crate::Label::Failpoint($name));
+                branch = state.tree.visit($name);
             }
         });
         match branch {
@@ -64,7 +64,7 @@ macro_rules! inject_override {
             if let Some(state) = state
                 && state.enabled
             {
-                branch = state.tree.visit($crate::Label::Failpoint(NAME));
+                branch = state.tree.visit(NAME);
             }
         });
         match branch {
@@ -78,7 +78,7 @@ macro_rules! inject_override {
             if let Some(state) = state
                 && state.enabled
             {
-                branch = state.tree.visit($crate::Label::Failpoint($name));
+                branch = state.tree.visit($name);
             }
         });
         match branch {
@@ -116,7 +116,7 @@ macro_rules! inject_override_with_side_effect {
             if let Some(state) = state
                 && state.enabled
             {
-                branch = state.tree.visit($crate::Label::Failpoint(NAME));
+                branch = state.tree.visit(NAME);
             }
         });
         let res = $input;
@@ -131,7 +131,7 @@ macro_rules! inject_override_with_side_effect {
             if let Some(state) = state
                 && state.enabled
             {
-                branch = state.tree.visit($crate::Label::Failpoint($name));
+                branch = state.tree.visit($name);
             }
         });
         let res = $input;

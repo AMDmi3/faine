@@ -128,8 +128,8 @@ impl Tree {
         }
     }
 
-    pub fn visit(&mut self, label: Label) -> Branch {
-        let current_node_id = self.advance(label);
+    pub fn visit(&mut self, failpoint_name: &'static str) -> Branch {
+        let current_node_id = self.advance(Label::Failpoint(failpoint_name));
 
         let branches = match self.options.branch_preference {
             Branch::Activate => &[Branch::Activate, Branch::Skip],
