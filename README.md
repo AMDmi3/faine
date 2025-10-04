@@ -22,66 +22,42 @@ On top of supporting that, `faine` implements automated execution path explorati
 running a tested code multiple times with different combinations of failpoints enabled
 and disabled (NB: in much more effective way than trying all N² possible combinations).
 This allows simpler tests (which do not know inner workings of the code, that is to
-know which failpoints to trigger and which effects to expect), with much greater coverage
+know which failpoints to trigger and which effects to expect), with much higher coverage
 (as all possible code paths are tested).
 
-## Illustrative example
+## Example
 
-Let's imagine you want to test a code which atomically replaces a file, which is canonically
-done by opening a temporary file, writing to it, and then renaming it over an old file -
-that's at least 3 filesystem operations each of which may fail independently. With `faine`,
-what you do is:
+Let's test a code which is supposed to atomically replace a file with given content.
 
-- You add a failpoint before/around each I/O operation (e.g. `std::fs` call).
-- In the test, you check whether resulting filesystem state after calling you code, which
-  should be a file with either old or new contents, not anything else (like missing or empty
-  file, which would be a result of incorrect implementation).
-
-Now imagine that instead of using highlevel `fs` primitives, you bring a whole filesystem
-implementation into your code. You still add a failpoint before/around each low level I/O
-operation (disk block reads and writes in this case), but the test code does not change at
-all! And it checks your code bahavior agains a possible failur in _each_ of many operations
-which consitute a filesystem transaction.
-
-## Code example
-
-As in example above, let's test a function which is supposed to atomically replace a file.
-For illustrative purposes, let's take an invalid implementation.
+Instrument the code by adding failpoint macros before (or around) each operation
+you want to simulate failures of:
 
 ```rust
-fn replace_file(path: &Path, content: &str) -> io::Result<()> {
+use faine::inject_return_io_error;
+
+fn atomic_replace_file(path: &Path, content: &str) -> io::Result<()> {
+    inject_return_io_error!("create file"); // <- added failpoint
     let mut file = File::create(path)?;
+    inject_return_io_error!("write file");  // <- added failpoint
     file.write_all(content.as_bytes())?;
     Ok(())
 }
 ```
 
-Add failpoints to the code:
-
-```rust
-use faine::inject_return;
-fn replace_file(path: &Path, content: &str) -> io::Result<()> {
-    inject_return!("create new file", Err(io::Error::other("injected error")));
-    let mut file = File::create(path)?;
-    inject_return!("write new file", Err(io::Error::other("injected error")));
-    file.write_all(content.as_bytes())?;
-    Ok(())
-}
-```
-
-Implement setup code and check, and you can test it:
+Now write a test, utilizing [`faine::Runner`](crate::Runner):
 
 ```rust
 use faine::Runner;
+
 #[test]
 fn test_replace_file_is_atomic() {
-    faine::Runner::default().run(|| {
+    Runner::default().run(|_| {
         // prepare filesystem state for testing
         let tempdir = tempfile::tempdir().unwrap();
         let path = tempdir.path().join("myfile");
         File::create(&path).unwrap().write_all(b"old").unwrap();
         // run the tested code
-        let res = replace_file(&path, "new");
+        let res = atomic_replace_file(&path, "new");
         // check resulting filesystem state
         let contents = read_to_string(path).unwrap();
         assert!(
@@ -92,111 +68,13 @@ fn test_replace_file_is_atomic() {
 }
 ```
 
-<details>
-<summary>For completeness, let's test the correct implementation</summary>
+See [examples/atomic_replace_file.rs] for complete code for this example.
 
-```rust
-use faine::{Runner, inject_return};
-fn replace_file(path: &Path, content: &str) -> io::Result<()> {
-     let temp_path = path.with_added_extension("tmp");
-     {
-         inject_return!("create temp file", Err(io::Error::other("injected error")));
-         let mut file = File::create(&temp_path)?;
-         inject_return!("write temp file", Err(io::Error::other("injected error")));
-         file.write_all(content.as_bytes())?;
-     }
-     inject_return!("replace file", Err(io::Error::other("injected error")));
-     rename(&temp_path, path)?;
-     Ok(())
-}
+## Documentation
 
-#[test]
-fn test_replace_file_is_atomic() {
-    Runner::default().run(|| {
-        let tempdir = tempfile::tempdir().unwrap();
-        let path = tempdir.path().join("myfile");
-        File::create(&path).unwrap().write_all(b"old").unwrap();
-        let res = replace_file(&path, "new");
-        let contents = read_to_string(path).unwrap();
-        assert!(
-           res.is_ok() && contents == "new" ||
-           res.is_err() && contents == "old"
-        ); // now OK!
-    }).unwrap();
-}
-```
+See https://docs.rs/faine/latest/faine/ for complete documentation.
 
-</details>
-
-## Specifying failpoints
-
-The examples above shows the most verbose way to specify failpoints,
-however there are shorter forms:
-- You may omit failpoint names if you don't care about them (in which
-  case they are generated from the source path, line and column).
-- There are shortcuts which just return `std::io::Error::other`, as
-  testing I/O operations is probably the most common use case.
-
-```rust
-inject_return!("failpoint name", Err(io::Error::other("injected error")));
-inject_return!(Err(io::Error::other("injected error")));  // name autogenerated
-inject_return_io_error!("failpoint name");                // return io::Error
-inject_return_io_error!();
-```
-
-There is a set of macros with the same variations which, instead of returning
-early, wrap an expression and replace it with something else when failpoint
-is triggered:
-
-```rust
-let f = inject_override!(File::open("foo"), "failpoint name", Err(io::Error::other("injected error")));
-let f = inject_override!(File::open("foo"), Err(io::Error::other("injected error")));
-let f = inject_override_io_error!(File::open("foo"), "failpoint name");
-let f = inject_override_io_error!(File::open("foo"));
-```
-
-These are also useful if the tested code has its own branching based on the
-result of an operation:
-
-```rust
-fn open_with_fallback() -> io::Result<File> {
-    if let Ok(file) = inject_override_io_error!(File::open("main.dat")) {
-        Ok(file)
-    } else {
-        inject_override_io_error!(File::open("backup.dat"))
-    }
-}
-```
-
-## Executing the instrumented code
-
-In the test, just construct a default `Runner` and call its `run()` method
-with the tested code:
-
-```rust
-#[test]
-fn test_foobar() {
-    Runner::default().run(|| {
-        tested_code();
-    }).unwrap();
-}
-```
-
-## Controlling behavior
-
-- You can disable/enable failpoints processing:
-
-  ```
-  use faine::enable_failpoints;
-
-  enable_failpoints(false);
-  // failpoints will be ignored here
-  enable_failpoints(true);
-  ```
-
-- `Runner` has some knobs to tune its behavior.
-
-## Other implementaions of the same concept
+## Other implementations of the same concept
 
 Neither supports path exploration as far as I know.
 
@@ -206,4 +84,6 @@ Neither supports path exploration as far as I know.
 - [failpoints](https://crates.io/crates/failpoints)
 - [fault-injection](https://crates.io/crates/fault-injection)
 
-License: MIT OR Apache-2.0
+## License
+
+- MIT OR Apache-2.0
