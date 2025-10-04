@@ -156,3 +156,32 @@ macro_rules! inject_override_with_side_effect_io_error {
     }};
     ($input:expr, $name:expr) => {{ $crate::inject_override_with_side_effect!($input, $name, Err(std::io::Error::other($name))) }};
 }
+
+/// Enable or disable failpoints
+///
+/// This is primarily indented to be used in the test code which is run under
+/// [`Runner::run()`](crate::Runner::run). For instance, you may want to run the tested
+/// code twice, first time with failpoints enabled to simulate all possible failures, then
+/// with failpoints disabled to simulate eventual successful execution and check
+/// how it recovers from previous errors.
+///
+/// It can be run from the instrumented code as well, though.
+///
+/// Like `inject_*` macros, it does nothing outside of [`Runner::run()`](crate::Runner::run).
+#[macro_export]
+macro_rules! enable_failpoints {
+    (true) => {{
+        $crate::__private::FAILPOINTS.with_borrow_mut(|state| {
+            if let Some(state) = state {
+                state.enabled = true;
+            }
+        });
+    }};
+    (false) => {{
+        $crate::__private::FAILPOINTS.with_borrow_mut(|state| {
+            if let Some(state) = state {
+                state.enabled = false;
+            }
+        });
+    }};
+}

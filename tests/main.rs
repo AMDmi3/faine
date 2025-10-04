@@ -55,9 +55,9 @@ fn test_simple() {
 fn test_enable_disable() {
     fn foo() -> Result<(), usize> {
         inject_return!("1", Err(1));
-        enable_failpoints(false);
+        enable_failpoints!(false);
         inject_return!("2", Err(2));
-        enable_failpoints(true);
+        enable_failpoints!(true);
         inject_return!("3", Err(3));
         Ok(())
     }

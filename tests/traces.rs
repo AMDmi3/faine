@@ -143,9 +143,9 @@ fn test_branching() {
 fn test_disabled() {
     fn foo() -> Result<(), usize> {
         inject_return!("first", Err(1));
-        enable_failpoints(false);
+        enable_failpoints!(false);
         inject_return!("disabled", Err(3));
-        enable_failpoints(true);
+        enable_failpoints!(true);
         inject_return!("second", Err(2));
         Ok(())
     }

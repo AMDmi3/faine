@@ -178,22 +178,8 @@
 //!
 //! ## Enabling failpoints
 //!
-//! You can toggle failpoints processing:
-//!
-//! ```
-//! # use std::io;
-//! # use faine::inject_return_io_error;
-//! use faine::enable_failpoints;
-//!
-//! inject_return_io_error!();
-//! enable_failpoints(false);
-//! inject_return_io_error!("this failpoint will never be triggered");
-//! enable_failpoints(true);
-//! inject_return_io_error!();
-//! # Ok::<(), io::Error>(())
-//! ```
-//!
-//! This is particularly useful to test how subsequent runs of the code
+//! You can toggle failpoints processing with [`enable_failpoints`](crate::enable_failpoints)
+//! macro. This is particularly useful to test how subsequent runs of the code
 //! recover from any previous errors:
 //!
 //! ```
@@ -203,7 +189,7 @@
 //! # fn tested_code() {}
 //! tested_code(); // this fails in all possible ways
 //! tested_code(); // this also fails, and sees the previous errors
-//! enable_failpoints(false);
+//! enable_failpoints!(false);
 //! tested_code(); // this recovers
 //! # Ok::<(), io::Error>(())
 //! ```
@@ -262,7 +248,6 @@
 mod collections;
 mod common;
 mod error;
-mod functions;
 mod introspection;
 mod macros;
 mod options;
@@ -274,6 +259,5 @@ pub mod __private;
 
 pub use common::{Branch, Label};
 pub use error::Error;
-pub use functions::enable_failpoints;
 pub use introspection::{Report, Step, Trace};
 pub use runner::Runner;
