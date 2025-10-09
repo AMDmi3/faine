@@ -68,7 +68,7 @@ fn test_replace_file_is_atomic() {
 }
 ```
 
-See [examples/atomic_replace_file.rs] for complete code for this example.
+See [examples/atomic_replace_file.rs](examples/atomic_replace_file.rs) for complete code for this example.
 
 ## Documentation
 
