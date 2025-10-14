@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- **fixed**: fix disabling failpoints affecting the subsequent code runs.
+
 ## 0.2.0
 
 - **breaking**: `enable_failpoints` is now a macro for usage and behavior
