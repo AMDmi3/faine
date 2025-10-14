@@ -94,11 +94,11 @@ impl Runner {
 
         loop {
             FAILPOINTS.with_borrow_mut(|state| {
-                state
+                let state = state
                     .as_mut()
-                    .expect("failpoints state must be initialized")
-                    .tree
-                    .start()
+                    .expect("failpoints state must be initialized");
+                state.enabled = true;
+                state.tree.start();
             });
 
             let handle = TraceHandle {};

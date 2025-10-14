@@ -140,7 +140,7 @@ fn test_branching() {
 }
 
 #[test]
-fn test_disabled() {
+fn test_disabled_enabled() {
     fn foo() -> Result<(), usize> {
         inject_return!("first", Err(1));
         enable_failpoints!(false);
@@ -174,6 +174,41 @@ fn test_disabled() {
                 .step("first", Skip)
                 .step("second", Skip)
                 .finish(),
+        ],
+        is_exhaustive: true,
+    };
+
+    assert_eq!(final_report, expected_report);
+    assert_eq!(manual_report, expected_report);
+}
+
+#[test]
+fn test_leave_disabled() {
+    fn foo() -> Result<(), usize> {
+        let _ = inject_override!(true, "first", false);
+        enable_failpoints!(false);
+        // failpoints are left disabled in the end, it should not affect subsequent runs
+        inject_return!("disabled", Err(3));
+        Ok(())
+    }
+
+    let mut manual_report = Report {
+        is_exhaustive: true,
+        traces: vec![],
+    };
+
+    let final_report = Runner::default()
+        .run(|trace| {
+            _ = foo();
+            manual_report.traces.push(trace.trace());
+        })
+        .unwrap();
+
+    use Branch::{Activate, Skip};
+    let expected_report = Report {
+        traces: vec![
+            TraceBuilder::new().step("first", Activate).finish(),
+            TraceBuilder::new().step("first", Skip).finish(),
         ],
         is_exhaustive: true,
     };
