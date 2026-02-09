@@ -20,5 +20,5 @@ fancy-traces = ["dep:colored"]
 colored = { version = "3.0.0", optional = true }
 
 [dev-dependencies]
-anyhow = "1.0.100"
+anyhow = "1.0.101"
 tempfile = "3.23.0"
